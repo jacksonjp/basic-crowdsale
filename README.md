@@ -12,6 +12,7 @@ Uses:
 
 ## WIP
 - Tested on Ropsten Network using metaMask.
+- Testing Server Side Rendering.
 
 ## Setup
 First install the dependencies, in the root directory of this project run.
