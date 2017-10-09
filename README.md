@@ -1,4 +1,4 @@
-# React Universal App (SSR + RR4 + SASS)
+# Crowdsale React dApp (SSR + RR4 + SASS) uses metaMask
 
 ## WIP (Testing ropsten)
 

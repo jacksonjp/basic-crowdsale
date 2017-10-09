@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import csContract from '../../contracts/csContract';
-import CoinContract from '../../contracts/tokenContract';
-import CONFIG from '../../config';
+import tokenContract from '../../contracts/tokenContract';
 
-class Home extends Component {
+type Props = {
+  web3: PropTypes.Object
+};
+
+class Home extends Component<Props> {
   constructor() {
     super();
     this.state = {
@@ -23,22 +27,19 @@ class Home extends Component {
   handleChange(event) {
     this.setState({ etherAddress: event.target.value });
   }
-  weiRaised(csIntance) {
+  weiRaised(CSContract) {
     var that = this;
     var web3 = this.props.web3;
-    csIntance.weiRaised.call().then(function(wei) {
-      var ether = web3.fromWei(wei, 'ether').toString();
+    CSContract.amountRaised({}, (err, result) => {
+      var ether = web3.fromWei(result, 'ether').toString();
       that.setState({
-        amountRaised: ether,
-        address: csIntance.address
+        amountRaised: ether
       });
     });
   }
   amountRaised() {
     if (this.props.web3) {
       var web3 = this.props.web3;
-      // jackSale.setProvider(web3.currentProvider);
-      // JackCoin.setProvider(web3.currentProvider);
       var that = this;
       var CSContract = csContract(this.props.web3);
       CSContract.amountRaised({}, (err, result) => {
@@ -53,33 +54,28 @@ class Home extends Component {
           saleEnd: new Date(time.toString() * 1000).toDateString()
         });
       });
-      // this.setState({
-      //   tokenAddress: address.toString()
-      // });
-      // jackSale.deployed().then(function(csIntance) {
-
-      //   that.weiRaised(csIntance);
-      //   csIntance.endTime.call().then(function(time) {
-      //     that.setState({
-      //       saleEnd: new Date(time.toString() * 1000).toDateString()
-      //     });
-      //   });
-      //   csIntance.token.call().then(function(address) {
-      //     that.setState({
-      //       tokenAddress: address.toString()
-      //     });
-      //   });
-      //   var events = csIntance.allEvents({ fromBlock: 0, toBlock: 'latest' });
-      //   events.watch(function(error, log) {
-      //     var logs = that.state.transactions;
-      //     logs.push(log);
-      //     that.setState({
-      //       transactions: logs
-      //     });
-      //     that.weiRaised(csIntance);
-      //   });
-      //   events.get(function(error, logs) {});
-      // });
+      CSContract.fundingGoal({}, (err, result) => {
+        var ether = web3.fromWei(result, 'ether').toString();
+        that.setState({
+          goal: ether
+        });
+      });
+      CSContract.rate({}, (err, result) => {
+        var ether = result.toString();
+        that.setState({
+          rate: ether
+        });
+      });
+      var events = CSContract.allEvents({ fromBlock: 0, toBlock: 'latest' });
+      events.watch(function(error, log) {
+        var logs = that.state.transactions;
+        logs.push(log);
+        that.setState({
+          transactions: logs
+        });
+        that.weiRaised(CSContract);
+      });
+      events.get(function() {});
     }
   }
   componentWillReceiveProps(newProps) {
@@ -92,14 +88,15 @@ class Home extends Component {
   getTokenBalance() {
     var that = this;
     var web3 = this.props.web3;
-    // JackCoin.at(this.state.tokenAddress).then(function(instance) {
-    //   instance.balanceOf(that.state.etherAddress).then(function(balance) {
-    //     var ether = web3.fromWei(balance, 'ether').toString();
-    //     that.setState({
-    //       etherBalance: ether
-    //     });
-    //   });
-    // });
+    var CoinContract = tokenContract(this.props.web3);
+    if (this.state.etherAddress) {
+      CoinContract.balanceOf(this.state.etherAddress, function(err, result) {
+        var ether = web3.fromWei(result, 'ether').toString();
+        that.setState({
+          etherBalance: ether
+        });
+      });
+    }
   }
   render() {
     if (!this.props.web3) return <div>Loading....</div>;
@@ -112,8 +109,8 @@ class Home extends Component {
         var coins = web3.fromWei(purchaser.amount, 'ether').toString();
         return (
           <p key={key}>
-            <a style={{ color: 'blue' }}>{purchaser.purchaser}</a> purchased{' '}
-            <strong>{coins}</strong> Jack Coin(s)
+            <a style={{ color: 'blue' }}>{purchaser.backer}</a> contributed{' '}
+            <strong>{coins}</strong> ether
           </p>
         );
       });
@@ -122,12 +119,16 @@ class Home extends Component {
         <div className="pure-g">
           <div className="pure-u-1-1">
             <h1>Sale End Date: {this.state.saleEnd}</h1>
+            Funding Goal: {this.state.goal}
+            <br />
             Ether raised: {this.state.amountRaised}
+            <br />
+            1 ether = {this.state.rate} JCK2
             <br />
             Please send Ether to this Address: <b>{this.state.address}</b>
             <br />
             <br />
-            Type Address to check JackCoin Balance
+            Type Address to check JCK2 Balance
             <br />
             <br />
             <input
@@ -138,7 +139,7 @@ class Home extends Component {
             {this.state.etherBalance ? (
               <div>
                 <br />
-                You have {this.state.etherBalance} Jack Coin(s)
+                You have {this.state.etherBalance} JCK2
               </div>
             ) : (
               ''
@@ -159,7 +160,7 @@ class Home extends Component {
     );
   }
 }
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = state => {
   return {
     web3: state.web3.web3Instance
   };
