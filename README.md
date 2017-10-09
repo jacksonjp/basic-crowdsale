@@ -1,6 +1,4 @@
-# Crowdsale React dApp (SSR + RR4 + SASS) uses metaMask
-
-## WIP (Testing ropsten)
+# Crowdsale React dApp (SSR + RR4 + SASS)
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
@@ -12,9 +10,14 @@ Uses:
 - Flow for type checking
 - EsLint for linting
 
+## WIP
+- Tested on Ropsten Network using metaMask.
+
 ## Setup
 First install the dependencies, in the root directory of this project run.
 `npm install`
+
+Copy `/src/index.dist.js` to `/src/index.js` and replace relevant fields.
 
 ## Running
 For **Development** run `npm start`
